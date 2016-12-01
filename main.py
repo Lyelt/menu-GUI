@@ -47,7 +47,7 @@ class menuItem :
     #Return the name of the item
     def getItem(self) :
         return self.name
-    
+
 #-------------------------------------------------------------------------------
 #---Menu: Name is a string, file is text file to read from  
 class menu :
@@ -154,13 +154,15 @@ def showMainScreen (base, menu) :
     exitButton.config(bg="white", padx = 5)
     exitButton.grid(row=3, column=2, sticky="se")
 
+#-------------------------------------------------------------------------------
+#---Show the ingredients of the currently selected menu item
 def showIngredients(text) :
     for i in range(0, len(newMenu.menuItems)) :
         if newMenu.menuItems[i].getItem() == text :
-            print("Found")
             ingWindow = tkinter.Listbox(base, bg = "white")
             ingWindow.grid(row=0, column=1)
-            ingWindow.insert(0, text)
+            for ing in newMenu.menuItems[i].ingredients :
+                ingWindow.insert(0, ing)
 
 #-------------------------------------------------------------------------------
 #---Show the current menu
@@ -169,10 +171,13 @@ def showMenu(filt, parent) :
     menuWindow.grid(row=0, column = 0)
     
     nameList = newMenu.getNames(filt)
+    # Show the menu
     for name in nameList :
         menuWindow.insert(len(nameList), name)
-
-    okButton = tkinter.Button(base, bg ="white", text="Show Ingredients", command = lambda: showIngredients(menuWindow.get(0)))
+    
+    # Show ingredients of whatever menu item is selected
+    okButton = tkinter.Button(base, bg ="white", text="Show Ingredients", command = lambda: showIngredients(menuWindow.get(menuWindow.curselection())))
+    menuWindow.bind('<Double-1>', lambda x: showIngredients(menuWindow.get(menuWindow.curselection())))
     okButton.grid(row=1, column=0)
 #-------------------------------------------------------------------------------
 #---Add another ingredient field
@@ -189,18 +194,20 @@ def saveEntries(name, ingList, menu) :
         ingSet.add(i.get())
     menu.addMenuItem(name, ingSet)
     showMenu("full", base)
-    
+
+#-------------------------------------------------------------------------------
+#---Add a menu item and its ingredients
 def addMenuItem(menu) :
     ingList = []
     
     frame = tkinter.Frame(base, width = 25, height = 400, bg="white")
     frame.grid(row = 0, column = 1)
+    # Entry fields for adding a menu item
     addItemField = tkinter.Entry(frame, width = 20)    
     addItemField2 = tkinter.Entry(frame, width = 20)
     addItemField3 = tkinter.Entry(frame, width = 20)
     l1 = tkinter.Label(frame, text="Name of Menu Item", bg="white")
     l1.pack(side=TOP)
-
     addItemField.pack()
     l2 = tkinter.Label(frame, text="Ingredients", bg="white")
     l2.pack(side=TOP)
