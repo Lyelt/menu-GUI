@@ -3,6 +3,7 @@
 #Can append items to the File
 #Can display the whole menu, organize by categories, or filter
 #Can enter ingredients on hand and filter items that have that ingredient
+
 import sys
 import tkinter
 import tkinter.messagebox
@@ -140,13 +141,17 @@ def baseWindow (title = "Menu") :
 #-------------------------------------------------------------------------------
 #---Initialize top buttons
 def showMainScreen (base, menu) :
-    fullMenu = tkinter.Button(base, text="Full Menu", command = lambda: showMenu("full", fullMenu))
+    frame2 = tkinter.Frame(base, width = 25, height = 400, bg="white")
+    frame2.grid(row = 0, column = 1)
+    frame3 = tkinter.Frame(base, width = 25, height = 400, bg="white")
+    frame3.grid(row = 0, column = 2)
+    fullMenu = tkinter.Button(base, text="Full Menu", command = lambda: showMenu("full", fullMenu, frame2))
     fullMenu.grid(row=0, column=0, sticky="nwe")
     fullMenu.config(bg="white", padx = 5)
     enterIng = tkinter.Button(base, text="Enter Ingredients")
     enterIng.grid(row=0, column=1, sticky="nwe")
     enterIng.config(bg="white", padx = 5)
-    addItem = tkinter.Button(base, text="Add Item", command = lambda: addMenuItem(menu))
+    addItem = tkinter.Button(base, text="Add Item", command = lambda: addMenuItem(menu, frame2))
     addItem.grid(row=0, column=2, sticky="nwe")
     addItem.config(bg="white", padx = 5)
     
@@ -155,30 +160,62 @@ def showMainScreen (base, menu) :
     exitButton.grid(row=3, column=2, sticky="se")
 
 #-------------------------------------------------------------------------------
+#---Show a third listbox with details about the ingredient
+def showDetails(text) :
+    detailFrame = tkinter.Frame(base, width = 25, height = 400, bg="white")
+    detailFrame.grid(row = 0, column = 2)
+    
+    detailWindow = tkinter.Listbox(detailFrame, bg="white")
+    detailWindow.pack(side=TOP)
+    
+#-------------------------------------------------------------------------------
+#---Show the button to see ingredient details
+def showBut2(ingWindow, frame) :
+    okButton = tkinter.Button(frame, bg ="white", text="Ingredient Details", command = lambda: showDetails(ingWindow.get(ingWindow.curselection())))
+    okButton.pack(side=BOTTOM)
+    ingWindow.bind('<<ListboxSelect>>', lambda x: doNothing())
+    def doNothing() :
+        pass
+#-------------------------------------------------------------------------------
 #---Show the ingredients of the currently selected menu item
-def showIngredients(text) :
+def showIngredients(text, frame2) :
+    frame2.pack_forget()
+    frame2 = tkinter.Frame(base, width = 25, height = 400, bg="white")
+    frame2.grid(row = 0, column = 1)
     for i in range(0, len(newMenu.menuItems)) :
         if newMenu.menuItems[i].getItem() == text :
-            ingWindow = tkinter.Listbox(base, bg = "white")
-            ingWindow.grid(row=0, column=1)
+            ingWindow = tkinter.Listbox(frame2, bg = "white")
+            ingWindow.pack(side=TOP)
             for ing in newMenu.menuItems[i].ingredients :
                 ingWindow.insert(0, ing)
+    ingWindow.bind('<<ListboxSelect>>', lambda x: showBut2(ingWindow, frame2))
 
 #-------------------------------------------------------------------------------
+#---Show the button to "Show Ingredients"
+def showBut(menuWindow, frame, frame2) :
+    okButton = tkinter.Button(frame, bg ="white", text="Show Ingredients", command = lambda: showIngredients(menuWindow.get(menuWindow.curselection()), frame2))
+    okButton.pack(side=BOTTOM)
+    menuWindow.bind('<<ListboxSelect>>', lambda x: doNothing())
+    def doNothing() :
+        pass
+    
+#-------------------------------------------------------------------------------
 #---Show the current menu
-def showMenu(filt, parent) :
-    menuWindow = tkinter.Listbox(base, bg = "white")
-    menuWindow.grid(row=0, column = 0)
+def showMenu(filt, parent, frame2) :
+    menuFrame = tkinter.Frame(base, width = 25, height = 400, bg="white")
+    menuFrame.grid(row = 0, column = 0)
+    menuWindow = tkinter.Listbox(menuFrame, bg = "white")
+    menuWindow.pack(side=TOP)
     
     nameList = newMenu.getNames(filt)
     # Show the menu
     for name in nameList :
         menuWindow.insert(len(nameList), name)
-    
+        
     # Show ingredients of whatever menu item is selected
-    okButton = tkinter.Button(base, bg ="white", text="Show Ingredients", command = lambda: showIngredients(menuWindow.get(menuWindow.curselection())))
-    menuWindow.bind('<Double-1>', lambda x: showIngredients(menuWindow.get(menuWindow.curselection())))
-    okButton.grid(row=1, column=0)
+    menuWindow.bind('<<ListboxSelect>>', lambda x: showBut(menuWindow, menuFrame, frame2))
+    menuWindow.bind('<Double-1>', lambda x: showIngredients(menuWindow.get(menuWindow.curselection()), frame2))
+
 #-------------------------------------------------------------------------------
 #---Add another ingredient field
 def anotherEntry(frame, ingList) :
@@ -188,28 +225,25 @@ def anotherEntry(frame, ingList) :
 
 #-------------------------------------------------------------------------------
 #---Add the menu items to the menu
-def saveEntries(name, ingList, menu) :
+def saveEntries(name, ingList, menu, frame2) :
     ingSet = set()
     for i in ingList :
         ingSet.add(i.get())
     menu.addMenuItem(name, ingSet)
-    showMenu("full", base)
+    showMenu("full", base, frame2)
 
 #-------------------------------------------------------------------------------
 #---Add a menu item and its ingredients
-def addMenuItem(menu) :
+def addMenuItem(menu, frame2) :
     ingList = []
-    
-    frame = tkinter.Frame(base, width = 25, height = 400, bg="white")
-    frame.grid(row = 0, column = 1)
     # Entry fields for adding a menu item
-    addItemField = tkinter.Entry(frame, width = 20)    
-    addItemField2 = tkinter.Entry(frame, width = 20)
-    addItemField3 = tkinter.Entry(frame, width = 20)
-    l1 = tkinter.Label(frame, text="Name of Menu Item", bg="white")
+    addItemField = tkinter.Entry(frame2, width = 20)    
+    addItemField2 = tkinter.Entry(frame2, width = 20)
+    addItemField3 = tkinter.Entry(frame2, width = 20)
+    l1 = tkinter.Label(frame2, text="Name of Menu Item", bg="white")
     l1.pack(side=TOP)
     addItemField.pack()
-    l2 = tkinter.Label(frame, text="Ingredients", bg="white")
+    l2 = tkinter.Label(frame2, text="Ingredients", bg="white")
     l2.pack(side=TOP)
     addItemField2.pack()
     addItemField3.pack()
@@ -217,8 +251,8 @@ def addMenuItem(menu) :
     ingList.append(addItemField2)
     ingList.append(addItemField3)
         
-    saveButton = tkinter.Button(frame, text="Save Item", bg = "white", command = lambda: saveEntries(addItemField.get(), ingList, menu))
-    addButton = tkinter.Button(frame, text="Add Ingredient", bg = "white", command = lambda: anotherEntry(frame, ingList))
+    saveButton = tkinter.Button(frame2, text="Save Item", bg = "white", command = lambda: saveEntries(addItemField.get(), ingList, menu, frame2))
+    addButton = tkinter.Button(frame2, text="Add Ingredient", bg = "white", command = lambda: anotherEntry(frame2, ingList))
     saveButton.pack(side=BOTTOM)
     addButton.pack(side=BOTTOM)
 
